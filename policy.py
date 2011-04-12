@@ -13,7 +13,7 @@ def mean(xs):
 
 class Policy(object):
 	
-	def __init__(self, num_arms):
+	def __init__(self, num_arms=10, *args, **kwargs):
 		self.num_arms = num_arms
 		self.rewards = [[]] * num_arms
 		self.time = 0
@@ -27,7 +27,9 @@ class Policy(object):
 
 class EpsGreedy(Policy):
 	
-	epsilon = 0.01
+	def __init__(self, eps=0.01, *args, **kwargs):
+		super(EpsGreedy, self).__init__(*args, **kwargs)
+		self.epsilon = eps
 	
 	def _get_eps(self):
 		return self.epsilon
@@ -50,7 +52,7 @@ class EpsGreedy(Policy):
 class EpsTGreedy(EpsGreedy):
 	
 	def __init__(self, d, c=5.0, *args, **kwargs):
-		super(self, EpsTGreedy).__init__(*args, **kwargs)
+		super(EpsTGreedy, self).__init__(*args, **kwargs)
 		self.c = c
 		self.d = d
 	
