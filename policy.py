@@ -5,11 +5,28 @@ import math
 
 numpy.random.seed()
 
-def mean(xs):
-	if not xs:
-		return 0.0
-	else:
-		return float(sum(xs)) / len(xs)
+def imax(xs):
+	max_i = None
+	max_v = None
+	for i, v in enumerate(xs):
+		if v > max_v:
+			max_v = v
+			max_i = i
+	return max_i, max_v
+
+class SampleMeans(object):
+	
+	def __init__(self, num_means):
+		self.counts = [0] * num_means
+		self.sums = [0] * num_means
+	
+	def update(self, arm, reward):
+		self.sums[arm] += reward
+		self.counts[arm] += 1
+	
+	def get_sample_means(self):
+		return [float(sum) / count if count else 0 
+			    for sum, count in zip(self.sums, self.counts)]
 
 class Policy(object):
 	
@@ -25,7 +42,17 @@ class Policy(object):
 		self.time += 1
 		self.rewards[arm].append(reward)
 
-class EpsGreedy(Policy):
+class SampleMeanPolicy(Policy):
+	
+	def __init__(self, num_arms=10, *args, **kwargs):
+		super(SampleMeanPolicy, self).__init__(*args, **kwargs)
+		self.reward_sample_means = SampleMeans(num_arms)
+	
+	def update(self, arm, reward):
+		super(SampleMeanPolicy, self).update(arm, reward)
+		self.reward_sample_means.update(arm, reward)
+
+class EpsGreedy(SampleMeanPolicy):
 	
 	def __init__(self, eps=0.01, *args, **kwargs):
 		super(EpsGreedy, self).__init__(*args, **kwargs)
@@ -40,12 +67,10 @@ class EpsGreedy(Policy):
 			return int(numpy.random.random() * self.num_arms)
 		else:
 			# Exploit
-			max_sample_mean = mean(self.rewards[0])
-			best_arm = 0
-			for i in range(1, self.num_arms):
-				sample_mean = mean(self.rewards[i])
-				if sample_mean > max_sample_mean:
-					best_arm = i
+			sample_means = self.reward_sample_means.get_sample_means()
+			best_arm, _ = imax(sample_means)
+			if best_arm is None:
+				best_arm = 0
 			
 			return best_arm
 	
@@ -61,17 +86,17 @@ class EpsTGreedy(EpsGreedy):
 				   (float(self.c) * self.num_arms) / 
 				    ((self.d ** 2) (self.time + 1)))
 		
-class UCB(Policy):
-	
+class UCB(SampleMeanPolicy):
+
 	def choose_arm(self):
 		# Play each arm exactly once
 		if self.time < self.num_arms:
 			return self.time
 		
+		sample_means = self.reward_sample_means.get_sample_means()
 		max_est_reward = None
-		best_arm = 0
-		for i in range(self.num_arms):
-			sample_mean = mean(self.rewards[i])
+		best_arm = None
+		for i, sample_mean in enumerate(sample_means):
 			cb = math.sqrt((2.0 * math.log(self.time)) / len(self.rewards[i]))
 			est_reward = sample_mean + cb
 			if est_reward > max_est_reward:
@@ -79,6 +104,4 @@ class UCB(Policy):
 				best_arm = i
 		
 		return best_arm
-
-
 
