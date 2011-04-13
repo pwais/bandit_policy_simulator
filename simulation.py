@@ -17,7 +17,7 @@ class Simulation(object):
 		policy, iter_rewards = self.init()
 		
 		for t, rewards_t in enumerate(iter_rewards):
-			if t > self.max_time:
+			if t >= self.max_time:
 				break
 			
 			self.rewards[t] = rewards_t
