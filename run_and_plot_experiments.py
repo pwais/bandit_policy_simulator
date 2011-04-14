@@ -11,7 +11,7 @@ num_arms = (10, 25, 50, 100)
 eps_greedy_epsilons = (0.5, 0.1, 0.01, 0.001, 0.0001)
 max_time = 100000
 
-class ExpGreedySimu(Simulations):
+class ExpGreedySimu(Simulation):
 	def __init__(self, num_arms=10, eps=0.1, *args, **kwargs):
 		super(ExpGreedySimu, self).__init__(*args, **kwargs)
 		self.num_arms = num_arms
