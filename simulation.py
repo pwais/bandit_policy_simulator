@@ -36,5 +36,15 @@ class Simulation(object):
 		algo_gain = sum(rwd for rwd in self.policy_rewards)
 		return arm_gain - algo_gain
 
-
+class NSimulations(object):
 	
+	def __init__(self, max_time=100, name=None, num_sims=100):
+		self.name = name
+		
+		self.simus = [Simulation(max_time=max_time, name=None)
+					  for _ in range(num_sims)]
+	
+	def run(self, verbose=True, report_interval=1000):
+		for i, simu in enumerate(self.simus):
+			print >>sys.stderr, "%s: running simulation %s" % (self.name, i)
+			simu.run(verbose=verbose, report_interval=report_interval)
