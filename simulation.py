@@ -19,12 +19,12 @@ class Simulation(object):
 			rewards = [[]] * self.max_time
 			policy_rewards = [0] * self.max_time
 			
-			self._run(verbose=verbose, report_interval=report_interval, rewards, policy_rewards)
+			self._run(rewards, policy_rewards, verbose=verbose, report_interval=report_interval)
 			
 			self.run_to_rewards.append(rewards)
 			self.run_to_policy_rewards.append(policy_rewards)
 	
-	def _run(self, verbose=True, report_interval=1000, rewards, policy_rewards):
+	def _run(self, rewards, policy_rewards, verbose=True, report_interval=1000,):
 		policy, iter_rewards = self.init()
 		
 		for t, rewards_t in enumerate(iter_rewards):
