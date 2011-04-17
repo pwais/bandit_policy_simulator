@@ -7,16 +7,6 @@ import policy
 from policy import imax
 import rewards
 
-#class Rewards(object):
-#	
-#	def __init__(self):
-#		self.sums = []
-#		self.counts = []
-#	
-#	def update(self, rwd):
-#		self.sums += rwd
-#		self.counts = []
-
 def construct_policy(simu_params):
 	policy_class_name = simu_params['policy_class_name']
 	policy_args = simu_params['policy_args']
@@ -88,7 +78,7 @@ class Simulation(object):
 		return rewards, reward_sums, policy_rewards, arm_choices
 	
 	def run(self, verbose=True):
-		opt_arm_s = [[]] * self.num_sims
+#		opt_arm_s = [[]] * self.num_sims
 		opt_arm_rwd_s = [[]] * self.num_sims
 		policy_rewards_s = [[]] * self.num_sims
 		
@@ -97,37 +87,23 @@ class Simulation(object):
 			
 			best_arm, best_sum = imax(reward_sums)
 			
-			opt_arm_s[s] = [float(chosen_arm == best_arm) for chosen_arm in arm_choices]
+#			opt_arm_s[s] = [float(chosen_arm == best_arm) for chosen_arm in arm_choices]
 			
 			opt_arm_rwd_s[s] = [row[best_arm] for row in rewards if len(row)]
 			policy_rewards_s[s] = policy_rewards
 		
-		opt_arm = []
+#		opt_arm = []
 		opt_arm_rwd = []
 		policy_reward = []
 		for t in range(len(policy_rewards_s)):
-			opt_arm.append(mean(col[t] for col in opt_arm_s))
+#			opt_arm.append(mean(col[t] for col in opt_arm_s))
 			opt_arm_rwd.append(mean(col[t] for col in opt_arm_rwd_s))
 			policy_reward.append(mean(col[t] for col in policy_rewards_s))
 		
-		self.run_data = (opt_arm, opt_arm_rwd, policy_rewards)
+		self.run_data = (opt_arm_rwd, policy_rewards)
 
 	def save(self):
 		data = [self.simu_params, self.run_data]
 		fname = "records/%s_%s.json" % (self.simu_params['name'], self.simu_params['distro_name'])
 		fname = fname.replace(' ', '_')
 		simplejson.dump(data, open(fname, 'w'))
-			
-
-
-#class NSimulations(object):
-#	
-#	def __init__(self, num_sims=100, simu_class):
-#		self.name = name
-#		self.simus = [simu_class(max_time=max_time, name=None)
-#					  for _ in range(num_sims)]
-#	
-#	def run(self, verbose=True, report_interval=1000):
-#		for i, simu in enumerate(self.simus):
-#			print >>sys.stderr, "%s: running simulation %s" % (self.name, i)
-#			simu.run(verbose=verbose, report_interval=report_interval)

@@ -9,7 +9,7 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 100000
+max_time = 100
 
 all_num_arms = (10, 25, 50, 100, 1000)
 distro_eps = (0.1, 0.01, 0.001, 0.0001)
@@ -27,23 +27,12 @@ exploration_first_deltas = (0.1, 0.01, 0.001)
 succ_elim_eps = exploration_first_eps + (None,)
 
 
-#class ExpGreedyConstructor(object):
-#	def __init__(self, num_arms=10, eps=0.1, *args, **kwargs):
-#		super(ExpGreedySimu, self).__init__(*args, **kwargs)
-#		self.num_arms = num_arms
-#		self.eps = eps
-#		self.name = "Epsilon Greedy eps=%s" % (num_arms, eps)
-#		
-#	def init(self):
-#		p = policy.EpsGreedy(num_arms=self.num_arms, eps=self.eps)
-#		rwds = synthetic.iter_uniform_plus_eps(self.num_arms)
-#		return p, rwds
 
 def iter_distro_params():
 	for num_arms in all_num_arms:
 		for eps in distro_eps:
 			yield {
-			 'distro_name': "Uniform plus Epsilon eps=%s K=%s" % (eps, num_arms),
+			 'distro_name': "Uniform eps=%s K=%s" % (eps, num_arms),
 			 'reward_gen_name': 'iter_uniform_plus_eps',
 			 'reward_gen_args': (num_arms,),
 			 'reward_gen_kwargs': {'eps': eps},
@@ -138,7 +127,7 @@ def iter_UCB_sim_params(reward_gen_params):
 def iter_UCBBernoulli_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	params = {
-		'name': 'UCBBernoulli',
+		'name': 'UCB-Bernoulli',
 		'policy_class_name': 'UCBBernoulli',
 		'policy_args': (),
 		'policy_kwargs': {'num_arms': num_arms,
@@ -150,7 +139,7 @@ def iter_UCBBernoulli_sim_params(reward_gen_params):
 def iter_UCBNormal_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	params = {
-		'name': 'UCBNormal',
+		'name': 'UCB-Normal',
 		'policy_class_name': 'UCBNormal',
 		'policy_args': (),
 		'policy_kwargs': {'num_arms': num_arms,
@@ -163,7 +152,7 @@ def iter_UCB2SequentialEpochs_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	for alpha in ucb2_alphas:
 		params = {
-			'name': 'UCB2SequentialEpochs alpha=%s' % alpha,
+			'name': 'UCB2 alpha=%s' % alpha,
 			'policy_class_name': 'UCB2SequentialEpochs',
 			'policy_args': (),
 			'policy_kwargs': {'alpha': alpha,
@@ -177,7 +166,7 @@ def iter_UCB2NonSequentialEpochs_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	for alpha in ucb2_alphas:
 		params = {
-			'name': 'UCB2NonSequentialEpochs alpha=%s' % alpha,
+			'name': 'UCB2-Non-Sequential alpha=%s' % alpha,
 			'policy_class_name': 'UCB2NonSequentialEpochs',
 			'policy_args': (),
 			'policy_kwargs': {'alpha': alpha,
@@ -215,7 +204,7 @@ def iter_EXP3_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	for gamma in exp3_gammas:
 		params = {
-			'name': 'EXP3 gamma=%s' % gamma,
+			'name': 'EXP3 gamma=%s' % gamma if gamma is not None else 'EXP3',
 			'policy_class_name': 'EXP3',
 			'policy_args': (),
 			'policy_kwargs': {'gamma': gamma,
@@ -230,7 +219,7 @@ def iter_NaiveSequentialExplorer_sim_params(reward_gen_params):
 	for eps in exploration_first_eps:
 		for delta in exploration_first_deltas:
 			params = {
-				'name': 'NaiveSequentialExplorer eps=%s delta=%s' % (eps, delta),
+				'name': 'Naive Explorer eps=%s delta=%s' % (eps, delta),
 				'policy_class_name': 'NaiveSequentialExplorer',
 				'policy_args': (eps, delta),
 				'policy_kwargs': {'num_arms': num_arms,
@@ -243,7 +232,7 @@ def iter_SuccessiveEliminationSequentialExplorer_sim_params(reward_gen_params):
 	num_arms = reward_gen_params['num_arms']
 	for delta in exploration_first_deltas:
 		params = {
-			'name': 'SuccessiveEliminationSequentialExplorer delta=%s' % (delta,),
+			'name': 'Successive Elimination delta=%s' % (delta,),
 			'policy_class_name': 'SuccessiveEliminationSequentialExplorer',
 			'policy_args': (delta, reward_gen_params['mus']),
 			'policy_kwargs': {'num_arms': num_arms,
@@ -257,7 +246,8 @@ def iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params(reward_gen
 	for eps in succ_elim_eps:
 		for delta in exploration_first_deltas:
 			params = {
-				'name': 'SuccessiveEliminationUnknownBiasesUniformExplorer eps=%s delta=%s' % (eps, delta),
+				'name': 'Successive Elimination with Unknown Biases eps=%s delta=%s' % (eps, delta)
+						if eps is not None else 'Successive Elimination with Unknown Biases delta=%s' % (delta,),
 				'policy_class_name': 'SuccessiveEliminationUnknownBiasesUniformExplorer',
 				'policy_args': (delta,),
 				'policy_kwargs': {'epsilon': eps,
@@ -272,7 +262,7 @@ def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
 	for eps in exploration_first_eps:
 		for delta in exploration_first_deltas:
 			params = {
-				'name': 'MedianEliminationSequentialExplorer eps=%s delta=%s' % (eps, delta),
+				'name': 'Median Elimination eps=%s delta=%s' % (eps, delta),
 				'policy_class_name': 'MedianEliminationSequentialExplorer',
 				'policy_args': (eps, delta),
 				'policy_kwargs': {'num_arms': num_arms,
@@ -282,12 +272,12 @@ def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
 			yield params
 
 policy_param_gens = (
-	iter_eps_greedy_sim_params,
-	iter_eps_t_greedy_sim_params,
+#	iter_eps_greedy_sim_params,
+#	iter_eps_t_greedy_sim_params,
 	iter_UCB_sim_params,
 #	iter_UCBBernoulli_sim_params,
 #	iter_UCBNormal_sim_params,
-	iter_UCB2SequentialEpochs_sim_params,
+#	iter_UCB2SequentialEpochs_sim_params,
 #	iter_UCB2NonSequentialEpochs_sim_params,
 #	iter_Poker_sim_params,
 #	iter_SoftMix_sim_params,
