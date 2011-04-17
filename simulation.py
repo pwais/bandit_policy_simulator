@@ -33,9 +33,17 @@ def construct_iter_rewards(simu_params):
 	reward_generator = getattr(rewards, reward_gen_name)
 	return reward_generator(*reward_gen_args, **reward_gen_kwargs)
 
+def mean(xs):
+	sum = 0
+	num_el = 0
+	for x in xs:
+		mean += xs
+		num_el += 1
+	return float(sum) / num_el
+
 class Simulation(object):
 	
-	def __init__(self, simu_params, max_time=100, num_sims=1):
+	def __init__(self, simu_params, max_time=100, num_sims=10):
 		self.max_time = max_time
 		self.num_sims = num_sims
 		self.simu_params = simu_params
@@ -89,12 +97,20 @@ class Simulation(object):
 			
 			best_arm, best_sum = imax(reward_sums)
 			
-			opt_arm_s[s] = [chosen_arm == best_arm for chosen_arm in arm_choices]
+			opt_arm_s[s] = [float(chosen_arm == best_arm) for chosen_arm in arm_choices]
 			
 			opt_arm_rwd_s[s] = [row[best_arm] for row in rewards if len(row)]
 			policy_rewards_s[s] = policy_rewards
 		
-		self.run_data = (opt_arm_s, opt_arm_rwd_s, policy_rewards_s)
+		opt_arm = []
+		opt_arm_rwd = []
+		policy_reward = []
+		for t in range(len(policy_rewards_s)):
+			opt_arm.append(mean(col[t] for col in opt_arm_s))
+			opt_arm_rwd.append(mean(col[t] for col in opt_arm_rwd_s))
+			policy_reward.append(mean(col[t] for col in policy_rewards_s))
+		
+		self.run_data = (opt_arm, opt_arm_rwd, policy_rewards)
 
 	def save(self):
 		data = [self.simu_params, self.run_data]

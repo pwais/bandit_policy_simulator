@@ -9,7 +9,7 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 10000
+max_time = 100000
 
 all_num_arms = (10, 25, 50, 100, 1000)
 distro_eps = (0.1, 0.01, 0.001, 0.0001)
@@ -285,10 +285,10 @@ policy_param_gens = (
 	iter_eps_greedy_sim_params,
 	iter_eps_t_greedy_sim_params,
 	iter_UCB_sim_params,
-	iter_UCBBernoulli_sim_params,
-	iter_UCBNormal_sim_params,
+#	iter_UCBBernoulli_sim_params,
+#	iter_UCBNormal_sim_params,
 	iter_UCB2SequentialEpochs_sim_params,
-	iter_UCB2NonSequentialEpochs_sim_params,
+#	iter_UCB2NonSequentialEpochs_sim_params,
 	iter_Poker_sim_params,
 	iter_SoftMix_sim_params,
 	iter_EXP3_sim_params,
@@ -351,16 +351,16 @@ def segment(seq, n):
 
 if __name__ == '__main__':
 	num_procs = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-	all_simus = []
+#	all_simus = []
 	if num_procs == 1:
 		for params in iter_all_experiment_params():
 			simu = run_simu(params)
-			all_simus.append(simu)
+#			all_simus.append(simu)
 	else:
 		pool = Pool(processes=num_procs)
 		for chunk in segment(iter_all_experiment_params(), num_procs):
 			simus = pool.map(run_simu, chunk)
-			all_simus.extend(simus)
+#			all_simus.extend(simus)
 
 #if __name__ == '__main__':
 #	num_threads = 10
