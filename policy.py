@@ -446,25 +446,26 @@ class NaiveSequentialExplorer(SampleStatsPolicy):
 		super(NaiveSequentialExplorer, self).__init__(*args, **kwargs)
 		self.epsilon = epsilon
 		self.delta = delta
-		self.arm_count = [0] * self.num_arms
-		self.current_arm = 0
 		
 		self.sample_count = (4.0 / epsilon ** 2) * math.log((2.0 * self.num_arms) / delta)
 		
 		self.best_arm = None
 	
+		self.arm_chooser = self.make_arm_chooser()
+	
+	def make_arm_chooser(self):
+		for i in range(self.num_arms):
+			for _ in range(self.sample_count):
+				yield i
+	
 	def choose_arm(self):
-		if self.arm_count[self.current_arm] < self.sample_count:
-			self.arm_count[self.current_arm] += 1
-			return self.current_arm
-		else:
-			self.current_arm += 1
-			return self.current_arm
-		
-		if self.current_arm > self.num_arms:
-			if self.best_arm is None:
+		try:
+			arm = self.arm_chooser.next()
+			return arm
+		except StopIteration:
+			if not self.best_arm:
 				self.best_arm, _ = imax(self.sample_stats.get_sample_means())
-				print self.best_arm
+				
 			return self.best_arm
 		
 class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):
