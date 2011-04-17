@@ -279,13 +279,13 @@ policy_param_gens = (
 #	iter_UCBNormal_sim_params,
 #	iter_UCB2SequentialEpochs_sim_params,
 #	iter_UCB2NonSequentialEpochs_sim_params,
-	iter_Poker_sim_params,
-	iter_SoftMix_sim_params,
-	iter_EXP3_sim_params,
-#	iter_NaiveSequentialExplorer_sim_params,
-#	iter_SuccessiveEliminationSequentialExplorer_sim_params,
-#	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
-#	iter_MedianEliminationSequentialExplorer_sim_params
+#	iter_Poker_sim_params,
+#	iter_SoftMix_sim_params,
+#	iter_EXP3_sim_params,
+	iter_NaiveSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
+	iter_MedianEliminationSequentialExplorer_sim_params
 )
 
 def iter_all_experiment_params():
