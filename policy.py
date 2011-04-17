@@ -96,7 +96,7 @@ class SampleStats(object):
 
 class Policy(object):
 	
-	def __init__(self, num_arms=10, max_time=10 ** 5, *args, **kwargs):
+	def __init__(self, num_arms=10, max_time=10**5, *args, **kwargs):
 		self.num_arms = num_arms
 		self.rewards = [[]] * num_arms
 		self.time = 0
@@ -462,13 +462,14 @@ class NaiveSequentialExplorer(SampleStatsPolicy):
 		
 class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):
 	
-	def __init__(self, delta, biases, num_arms=10, *args, **kwargs):
+	def __init__(self, delta, mus, num_arms=10, *args, **kwargs):
 		super(SuccessiveEliminationSequentialExplorer, self).__init__(*args, **kwargs)
 		self.delta = delta
 		self.active_arms = [True] * num_arms
 		
-		self.t_is = [((8.0 / ((biases[0] - b) ** 2)) * math.log(2.0*num_arms / delta))
-					 for b in biases]
+		self.t_is = [((8.0 / ((mus[0] - mu) ** 2)) * math.log(2.0*num_arms / delta))
+					 if mus[0] - mu else 0
+					 for mu in mus]
 		
 		# t_{i+1} = 0 by definition
 		self.t_is.append(0)

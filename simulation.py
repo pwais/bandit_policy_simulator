@@ -1,4 +1,11 @@
+import os
 import sys
+
+import simplejson
+
+import policy
+from policy import imax
+import rewards
 
 #class Rewards(object):
 #	
@@ -10,12 +17,28 @@ import sys
 #		self.sums += rwd
 #		self.counts = []
 
+def construct_policy(simu_params):
+	policy_class_name = simu_params['policy_class_name']
+	policy_args = simu_params['policy_args']
+	policy_kwargs = simu_params['policy_kwargs']
+	
+	policy_class = getattr(policy, policy_class_name)
+	return policy_class(*policy_args, **policy_kwargs)
+
+def construct_iter_rewards(simu_params):
+	reward_gen_name = simu_params['reward_gen_name']
+	reward_gen_args = simu_params['reward_gen_args']
+	reward_gen_kwargs = simu_params['reward_gen_kwargs']
+	
+	reward_generator = getattr(rewards, reward_gen_name)
+	return reward_generator(*reward_gen_args, **reward_gen_kwargs)
+
 class Simulation(object):
 	
-	def __init__(self, max_time=100, name=None, num_sims=100):
+	def __init__(self, simu_params, max_time=100, num_sims=1):
 		self.max_time = max_time
-		self.name = name
 		self.num_sims = num_sims
+		self.simu_params = simu_params
 		
 		self.run_to_rewards = []
 		self.run_to_policy_rewards = []
@@ -23,22 +46,16 @@ class Simulation(object):
 	def init(self):
 		pass
 	
-	def run(self, verbose=True, report_interval=1000):
-		for i in range(self.num_sims):
-			if verbose:
-				print >>sys.stderr, "%s: running simulation %s" % (self.name, i)
-			
-			# Pre-allocate to significantly increase performance
-			rewards = [[]] * self.max_time
-			policy_rewards = [0] * self.max_time
-			
-			self._run(rewards, policy_rewards, verbose=verbose, report_interval=report_interval)
-			
-			self.run_to_rewards.append(rewards)
-			self.run_to_policy_rewards.append(policy_rewards)
-	
-	def _run(self, rewards, policy_rewards, verbose=True, report_interval=1000,):
-		policy, iter_rewards = self.init()
+	def _run_once(self, verbose=True):
+		
+		policy = construct_policy(self.simu_params)
+		iter_rewards = construct_iter_rewards(self.simu_params)
+		
+		# Pre-allocate to significantly increase performance
+		rewards = [[]] * self.max_time
+		policy_rewards = [0] * self.max_time
+		reward_sums = [0] * policy.num_arms
+		arm_choices = []
 		
 		for t, rewards_t in enumerate(iter_rewards):
 			if t >= self.max_time:
@@ -47,18 +64,40 @@ class Simulation(object):
 			rewards[t] = rewards_t
 			
 			arm = policy.choose_arm()
+			arm_choices.append(arm)
 			
 			reward = rewards_t[arm]
 			policy_rewards[t] = reward
 			policy.update(arm, reward)
 			
-			if verbose and t % report_interval == 0:
-				print >>sys.stderr, "%s: ran %s time steps" % (self.name, t)
+			for i, r in enumerate(rewards_t):
+				reward_sums[i] += r
+			
+			if verbose and t % 1000 == 0:
+				print >>sys.stderr, "%s: ran %s time steps" % (self.simu_params['name'], t)
+		
+		return rewards, reward_sums, policy_rewards, arm_choices
 	
-	def regret_vs_arm(self, arm):
-		arm_gain = sum(rewards[arm] for rewards in self.rewards)
-		algo_gain = sum(rwd for rwd in self.policy_rewards)
-		return arm_gain - algo_gain
+	def run(self, verbose=True):
+		opt_arm_s = [[]] * self.num_sims
+		opt_arm_rwd_s = [[]] * self.num_sims
+		policy_rewards_s = [[]] * self.num_sims
+		
+		for s in range(self.num_sims):
+			rewards, reward_sums, policy_rewards, arm_choices = self._run_once(verbose=verbose)
+			
+			best_arm, best_sum = imax(reward_sums)
+			
+			opt_arm_s[s] = [chosen_arm == best_arm for chosen_arm in arm_choices]
+			opt_arm_rwd_s[s] = [r[best_arm] for r in rewards]
+			policy_rewards_s[s] = policy_rewards
+		
+		self.run_data = (opt_arm_s, opt_arm_rwd_s, policy_rewards_s)
+
+	def save(self):
+		simplejson.dump((self.simu_params, self.run_data), os.open(self.simu_params['name']))
+			
+
 
 #class NSimulations(object):
 #	
