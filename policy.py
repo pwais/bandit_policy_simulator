@@ -233,7 +233,7 @@ class UCB2SequentialEpochs(SampleStatsPolicy):
 	def __init__(self, alpha=0.001, *args, **kwargs):
 		super(UCB2SequentialEpochs, self).__init__(*args, **kwargs)
 		self.alpha = alpha
-		self.r_i = [0] * self.num_arms
+		self.r_i = [0.0] * self.num_arms
 		self.in_epoch = False
 		self.current_best_arm = None
 		self.epoch_counter = -1
@@ -286,7 +286,7 @@ class UCB2NonSequentialEpochs(SampleStatsPolicy):
 	def __init__(self, alpha=0.001, *args, **kwargs):
 		super(UCB2NonSequentialEpochs, self).__init__(*args, **kwargs)
 		self.alpha = alpha
-		self.r_i = [0] * self.num_arms
+		self.r_i = [0.0] * self.num_arms
 		self.epoch_counters = [-1] * self.num_arms
 		self.epoch_lengths = [0] * self.num_arms
 
@@ -395,7 +395,7 @@ class SoftMix(SampleStatsPolicy):
 	
 	def choose_arm(self):
 		if self.time > 2:
-			gamma_t = min(1.0, ((5 * self.num_arms * math.log(self.time - 1)) /
+			gamma_t = min(1.0, ((5.0 * self.num_arms * math.log(self.time - 1)) /
 							    ((self.d ** 2) * (self.time - 1))))
 		else:
 			gamma_t = 1.0
@@ -418,11 +418,11 @@ class EXP3(SampleStatsPolicy):
 	
 	def __init__(self, gamma=None, max_time=10**5, *args, **kwargs):
 		super(EXP3, self).__init__(*args, **kwargs)
-		self.weights = [1] * self.num_arms
-		self.probs = [0] * self.num_arms
+		self.weights = [1.0] * self.num_arms
+		self.probs = [0.0] * self.num_arms
 		if gamma is None:
-			self.gamma = min(1, math.sqrt((self.num_arms * math.log(self.num_arms)) / 
-									 	  ((math.e - 1) * max_time)))
+			self.gamma = min(1.0, math.sqrt((self.num_arms * math.log(self.num_arms)) / 
+									 	  	((math.e - 1) * max_time)))
 		else:
 			self.gamma = gamma
 	
@@ -434,7 +434,7 @@ class EXP3(SampleStatsPolicy):
 	
 	def choose_arm(self):
 		sum_weights = sum(self.weights)
-		self.probs = [((1 - self.gamma) * (weight / sum_weights) + self.gamma / self.num_arms)
+		self.probs = [((1.0 - self.gamma) * (weight / sum_weights) + self.gamma / self.num_arms)
 					  for weight in self.weights]
 		
 		arm = weighted_choice(self.probs)

@@ -95,7 +95,7 @@ class Simulation(object):
 #		opt_arm = []
 		opt_arm_rwd = []
 		policy_reward = []
-		for t in range(len(policy_rewards_s)):
+		for t in range(len(policy_rewards_s[0])):
 #			opt_arm.append(mean(col[t] for col in opt_arm_s))
 			opt_arm_rwd.append(mean(col[t] for col in opt_arm_rwd_s))
 			policy_reward.append(mean(col[t] for col in policy_rewards_s))
