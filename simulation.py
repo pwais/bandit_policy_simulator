@@ -1,5 +1,15 @@
 import sys
 
+#class Rewards(object):
+#	
+#	def __init__(self):
+#		self.sums = []
+#		self.counts = []
+#	
+#	def update(self, rwd):
+#		self.sums += rwd
+#		self.counts = []
+
 class Simulation(object):
 	
 	def __init__(self, max_time=100, name=None, num_sims=100):
@@ -15,6 +25,9 @@ class Simulation(object):
 	
 	def run(self, verbose=True, report_interval=1000):
 		for i in range(self.num_sims):
+			if verbose:
+				print >>sys.stderr, "%s: running simulation %s" % (self.name, i)
+			
 			# Pre-allocate to significantly increase performance
 			rewards = [[]] * self.max_time
 			policy_rewards = [0] * self.max_time

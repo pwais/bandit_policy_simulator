@@ -8,7 +8,11 @@ from simulation import Simulation
 import synthetic
 
 num_arms = (10, 25, 50, 100)
+
 eps_greedy_epsilons = (0.5, 0.1, 0.01, 0.001, 0.0001)
+
+eps_t_greedy_cs = (0.05, 0.1, 0.15, 0.2, 0.4, 1.0, 2.0, 5.0)
+
 max_time = 100000
 
 class ExpGreedySimu(Simulation):
