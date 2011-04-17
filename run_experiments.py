@@ -9,7 +9,7 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 100
+max_time = 100000
 
 all_num_arms = (10, 25, 50, 100, 1000)
 distro_eps = (0.1, 0.01, 0.001, 0.0001)
