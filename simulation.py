@@ -37,7 +37,7 @@ def mean(xs):
 	sum = 0
 	num_el = 0
 	for x in xs:
-		mean += xs
+		sum += xs
 		num_el += 1
 	return float(sum) / num_el
 
