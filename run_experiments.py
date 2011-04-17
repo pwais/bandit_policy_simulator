@@ -272,13 +272,13 @@ def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
 			yield params
 
 policy_param_gens = (
-#	iter_eps_greedy_sim_params,
-#	iter_eps_t_greedy_sim_params,
-	iter_UCB_sim_params,
-	iter_UCBBernoulli_sim_params,
-	iter_UCBNormal_sim_params,
-	iter_UCB2SequentialEpochs_sim_params,
-	iter_UCB2NonSequentialEpochs_sim_params,
+	iter_eps_greedy_sim_params,
+	iter_eps_t_greedy_sim_params,
+#	iter_UCB_sim_params,
+#	iter_UCBBernoulli_sim_params,
+#	iter_UCBNormal_sim_params,
+#	iter_UCB2SequentialEpochs_sim_params,
+#	iter_UCB2NonSequentialEpochs_sim_params,
 #	iter_Poker_sim_params,
 #	iter_SoftMix_sim_params,
 #	iter_EXP3_sim_params,
