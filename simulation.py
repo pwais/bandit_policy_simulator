@@ -34,12 +34,12 @@ def construct_iter_rewards(simu_params):
 	return reward_generator(*reward_gen_args, **reward_gen_kwargs)
 
 def mean(xs):
-	sum = 0
+	s = 0
 	num_el = 0
 	for x in xs:
-		sum += xs
+		s += x
 		num_el += 1
-	return float(sum) / num_el
+	return float(s) / num_el
 
 class Simulation(object):
 	
