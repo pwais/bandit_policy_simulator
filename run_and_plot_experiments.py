@@ -9,7 +9,7 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 100
+max_time = 2000
 
 all_num_arms = (10, 25, 50, 100, 1000)
 distro_eps = (0.1, 0.01, 0.001, 0.0001)
@@ -24,7 +24,7 @@ exp3_gammas = (0.1, 0.01, None)
 
 exploration_first_eps = (0.1, 0.01, 0.001)
 exploration_first_deltas = (0.1, 0.01, 0.001)
-succ_elim_eps = exploration_first_eps + [None]
+succ_elim_eps = exploration_first_eps + (None,)
 
 
 #class ExpGreedyConstructor(object):

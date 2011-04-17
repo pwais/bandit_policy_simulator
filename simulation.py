@@ -95,7 +95,8 @@ class Simulation(object):
 		self.run_data = (opt_arm_s, opt_arm_rwd_s, policy_rewards_s)
 
 	def save(self):
-		simplejson.dump((self.simu_params, self.run_data), os.open(self.simu_params['name']))
+		data = [self.simu_params, self.run_data]
+#		simplejson.dump(data, open(self.simu_params['name'], 'w'))
 			
 
 
