@@ -19,12 +19,14 @@ NETWORK_LATENCIES = [[(float(v) - min_latency) / max_latency for v in row]
 NETWORK_LATENCY_MUS = []
 for site in range(len(NETWORK_LATENCIES[0])):
 	NETWORK_LATENCY_MUS.append(sum(row[site] for row in NETWORK_LATENCIES) / len(NETWORK_LATENCIES))
-	
+
+NUM_LATENCY_TIME_STEPS = len(NETWORK_LATENCIES)
+
 print "Done loading network latencies"
 
 def iter_network_latencies(num_arms):
 	for row in NETWORK_LATENCIES:
-		return row[:num_arms]
+		yield row[:num_arms]
 
 def iter_uniform_plus_eps(num_arms, eps=0.01):
 	while True:

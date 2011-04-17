@@ -74,7 +74,8 @@ class Simulation(object):
 				reward_sums[i] += r
 			
 			if verbose and t % 1000 == 0:
-				print >>sys.stderr, "%s: ran %s time steps" % (self.simu_params['name'], t)
+				print >>sys.stderr, "%s: distro %s ran %s time steps" % (
+					self.simu_params['name'], self.simu_params['distro_name'], t)
 		
 		return rewards, reward_sums, policy_rewards, arm_choices
 	
@@ -89,14 +90,17 @@ class Simulation(object):
 			best_arm, best_sum = imax(reward_sums)
 			
 			opt_arm_s[s] = [chosen_arm == best_arm for chosen_arm in arm_choices]
-			opt_arm_rwd_s[s] = [r[best_arm] for r in rewards]
+			
+			opt_arm_rwd_s[s] = [row[best_arm] for row in rewards if len(row)]
 			policy_rewards_s[s] = policy_rewards
 		
 		self.run_data = (opt_arm_s, opt_arm_rwd_s, policy_rewards_s)
 
 	def save(self):
 		data = [self.simu_params, self.run_data]
-#		simplejson.dump(data, open(self.simu_params['name'], 'w'))
+		fname = "records/%s_%s.json" % (self.simu_params['name'], self.simu_params['distro_name'])
+		fname.replace(' ', '_')
+#		simplejson.dump(data, open(fname, 'w'))
 			
 
 

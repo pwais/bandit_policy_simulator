@@ -43,11 +43,13 @@ def iter_distro_params():
 	for num_arms in all_num_arms:
 		for eps in distro_eps:
 			yield {
+			 'distro_name': "Uniform plus Epsilon eps=%s K=%s" % (eps, num_arms),
 			 'reward_gen_name': 'iter_uniform_plus_eps',
 			 'reward_gen_args': (num_arms,),
 			 'reward_gen_kwargs': {'eps': eps},
 			 'd': eps,
-			 'mus': [0.5 + eps] + ([0.5] * (num_arms - 1))
+			 'mus': [0.5 + eps] + ([0.5] * (num_arms - 1)),
+			 'num_arms': num_arms,
 			}
 	
 	for num_arms in all_num_arms:
@@ -56,11 +58,13 @@ def iter_distro_params():
 		sorted_mus = sorted(mus, reverse=True)
 		d = sorted_mus[0] - sorted_mus[1]
 		yield {
+			 'distro_name': "Normal K=%s" % num_arms,
 			 'reward_gen_name': 'iter_normal',
 			 'reward_gen_args': (num_arms, mus, sigmas),
 			 'reward_gen_kwargs': {},
 			 'd': d,
-			 'mus': mus
+			 'mus': mus,
+			 'num_arms': num_arms,
 			}
 	
 	for num_arms in all_num_arms:
@@ -68,210 +72,230 @@ def iter_distro_params():
 		sorted_ps = sorted(ps, reverse=True)
 		d = sorted_ps[0] - sorted_ps[1]
 		yield {
+			 'distro_name': "Bernoulli K=%s" % num_arms,
 			 'reward_gen_name': 'iter_bernoulli',
 			 'reward_gen_args': (num_arms, ps),
 			 'reward_gen_kwargs': {},
 			 'd': d,
-			 'mus': ps
+			 'mus': ps,
+			 'num_arms': num_arms,
 			}
 	
 	for num_arms in (76, 760):
 		sorted_mus = sorted(rewards.NETWORK_LATENCY_MUS[:num_arms])
 		d = sorted_mus[0] - sorted_mus[1]
 		yield {
+		 'distro_name': "Network Latencies K=%s" % num_arms,
 		 'reward_gen_name': 'iter_network_latencies',
 		 'reward_gen_args': (num_arms,),
 		 'reward_gen_kwargs': {},
 		 'd': d,
-		 'mus': rewards.NETWORK_LATENCY_MUS[:num_arms]
+		 'mus': rewards.NETWORK_LATENCY_MUS[:num_arms],
+		 'num_arms': num_arms,
 		}
 		
 
 def iter_eps_greedy_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for eps in eps_greedy_epsilons:
-			params = {
-				'name': 'Epsilon Greedy eps=%s' % eps,
-				'policy_class_name': 'EpsGreedy',
-				'policy_args': (),
-				'policy_kwargs': {'num_arms': num_arms,
-								  'max_time': max_time}
-			}
-			params.update(reward_gen_params)
-			yield params
+	num_arms = reward_gen_params['num_arms']
+	for eps in eps_greedy_epsilons:
+		params = {
+			'name': 'Epsilon Greedy eps=%s' % eps,
+			'policy_class_name': 'EpsGreedy',
+			'policy_args': (),
+			'policy_kwargs': {'num_arms': num_arms,
+							  'max_time': max_time}
+		}
+		params.update(reward_gen_params)
+		yield params
 
 def iter_eps_t_greedy_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for eps in eps_greedy_epsilons:
-			for c in eps_t_greedy_cs:
-				params = {
-					'name': 'Epsilon-t Greedy c=%s eps=%s' % (c, eps),
-					'policy_class_name': 'EpsTGreedy',
-					'policy_args': (reward_gen_params['d'],),
-					'policy_kwargs': {'c': c,
-									  'num_arms': num_arms,
-									  'max_time': max_time}
-				}
-				params.update(reward_gen_params)
-				yield params
+	num_arms = reward_gen_params['num_arms']
+	for eps in eps_greedy_epsilons:
+		for c in eps_t_greedy_cs:
+			params = {
+				'name': 'Epsilon-t Greedy c=%s eps=%s' % (c, eps),
+				'policy_class_name': 'EpsTGreedy',
+				'policy_args': (reward_gen_params['d'],),
+				'policy_kwargs': {'c': c,
+								  'num_arms': num_arms,
+								  'max_time': max_time}
+			}
+			params.update(reward_gen_params)
+			yield params
 
 def iter_UCB_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		params = {
-			'name': 'UCB',
-			'policy_class_name': 'UCB',
-			'policy_args': (),
-			'policy_kwargs': {'num_arms': num_arms,
-							  'max_time': max_time}
-		}
-		params.update(reward_gen_params)
-		yield params
+	num_arms = reward_gen_params['num_arms']
+	params = {
+		'name': 'UCB',
+		'policy_class_name': 'UCB',
+		'policy_args': (),
+		'policy_kwargs': {'num_arms': num_arms,
+						  'max_time': max_time}
+	}
+	params.update(reward_gen_params)
+	yield params
 
 def iter_UCBBernoulli_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		params = {
-			'name': 'UCBBernoulli',
-			'policy_class_name': 'UCBBernoulli',
-			'policy_args': (),
-			'policy_kwargs': {'num_arms': num_arms,
-							  'max_time': max_time}
-		}
-		params.update(reward_gen_params)
-		yield params
+	num_arms = reward_gen_params['num_arms']
+	params = {
+		'name': 'UCBBernoulli',
+		'policy_class_name': 'UCBBernoulli',
+		'policy_args': (),
+		'policy_kwargs': {'num_arms': num_arms,
+						  'max_time': max_time}
+	}
+	params.update(reward_gen_params)
+	yield params
 
 def iter_UCBNormal_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		params = {
-			'name': 'UCBNormal',
-			'policy_class_name': 'UCBNormal',
-			'policy_args': (),
-			'policy_kwargs': {'num_arms': num_arms,
-							  'max_time': max_time}
-		}
-		params.update(reward_gen_params)
-		yield params
+	num_arms = reward_gen_params['num_arms']
+	params = {
+		'name': 'UCBNormal',
+		'policy_class_name': 'UCBNormal',
+		'policy_args': (),
+		'policy_kwargs': {'num_arms': num_arms,
+						  'max_time': max_time}
+	}
+	params.update(reward_gen_params)
+	yield params
 
 def iter_UCB2SequentialEpochs_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for alpha in ucb2_alphas:
-			params = {
-				'name': 'UCB2SequentialEpochs alpha=%s' % alpha,
-				'policy_class_name': 'UCB2SequentialEpochs',
-				'policy_args': (),
-				'policy_kwargs': {'alpha': alpha,
-								  'num_arms': num_arms,
-								  'max_time': max_time}
-			}
-			params.update(reward_gen_params)
-			yield params
+	num_arms = reward_gen_params['num_arms']
+	for alpha in ucb2_alphas:
+		params = {
+			'name': 'UCB2SequentialEpochs alpha=%s' % alpha,
+			'policy_class_name': 'UCB2SequentialEpochs',
+			'policy_args': (),
+			'policy_kwargs': {'alpha': alpha,
+							  'num_arms': num_arms,
+							  'max_time': max_time}
+		}
+		params.update(reward_gen_params)
+		yield params
 
 def iter_UCB2NonSequentialEpochs_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for alpha in ucb2_alphas:
-			params = {
-				'name': 'UCB2NonSequentialEpochs alpha=%s' % alpha,
-				'policy_class_name': 'UCB2NonSequentialEpochs',
-				'policy_args': (),
-				'policy_kwargs': {'alpha': alpha,
-								  'num_arms': num_arms,
-								  'max_time': max_time}
-			}
-			params.update(reward_gen_params)
-			yield params
+	num_arms = reward_gen_params['num_arms']
+	for alpha in ucb2_alphas:
+		params = {
+			'name': 'UCB2NonSequentialEpochs alpha=%s' % alpha,
+			'policy_class_name': 'UCB2NonSequentialEpochs',
+			'policy_args': (),
+			'policy_kwargs': {'alpha': alpha,
+							  'num_arms': num_arms,
+							  'max_time': max_time}
+		}
+		params.update(reward_gen_params)
+		yield params
 
 def iter_Poker_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		params = {
-			'name': 'Poker',
-			'policy_class_name': 'Poker',
-			'policy_args': (),
-			'policy_kwargs': {'num_arms': num_arms,
-							  'max_time': max_time}
-		}
-		params.update(reward_gen_params)
-		yield params
+	num_arms = reward_gen_params['num_arms']
+	params = {
+		'name': 'Poker',
+		'policy_class_name': 'Poker',
+		'policy_args': (),
+		'policy_kwargs': {'num_arms': num_arms,
+						  'max_time': max_time}
+	}
+	params.update(reward_gen_params)
+	yield params
 
 def iter_SoftMix_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
+	num_arms = reward_gen_params['num_arms']
+	params = {
+		'name': 'SoftMix',
+		'policy_class_name': 'SoftMix',
+		'policy_args': (reward_gen_params['d'],),
+		'policy_kwargs': {'num_arms': num_arms,
+						  'max_time': max_time}
+	}
+	params.update(reward_gen_params)
+	yield params
+
+def iter_EXP3_sim_params(reward_gen_params):
+	num_arms = reward_gen_params['num_arms']
+	for gamma in exp3_gammas:
 		params = {
-			'name': 'SoftMix',
-			'policy_class_name': 'SoftMix',
-			'policy_args': (reward_gen_params['d'],),
-			'policy_kwargs': {'num_arms': num_arms,
+			'name': 'EXP3 gamma=%s' % gamma,
+			'policy_class_name': 'EXP3',
+			'policy_args': (),
+			'policy_kwargs': {'gamma': gamma,
+							  'num_arms': num_arms,
 							  'max_time': max_time}
 		}
 		params.update(reward_gen_params)
 		yield params
 
-def iter_EXP3_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for gamma in exp3_gammas:
-			params = {
-				'name': 'EXP3 gamma=%s' % gamma,
-				'policy_class_name': 'EXP3',
-				'policy_args': (),
-				'policy_kwargs': {'gamma': gamma,
-								  'num_arms': num_arms,
-								  'max_time': max_time}
-			}
-			params.update(reward_gen_params)
-			yield params
-
 def iter_NaiveSequentialExplorer_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for eps in exploration_first_eps:
-			for delta in exploration_first_deltas:
-				params = {
-					'name': 'NaiveSequentialExplorer eps=%s delta=%s' % (eps, delta),
-					'policy_class_name': 'NaiveSequentialExplorer',
-					'policy_args': (eps, delta),
-					'policy_kwargs': {'num_arms': num_arms,
-									  'max_time': max_time}
-				}
-				params.update(reward_gen_params)
-				yield params
-
-def iter_SuccessiveEliminationSequentialExplorer_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
+	num_arms = reward_gen_params['num_arms']
+	for eps in exploration_first_eps:
 		for delta in exploration_first_deltas:
 			params = {
-				'name': 'SuccessiveEliminationSequentialExplorer delta=%s' % (delta,),
-				'policy_class_name': 'SuccessiveEliminationSequentialExplorer',
-				'policy_args': (delta, reward_gen_params['mus']),
+				'name': 'NaiveSequentialExplorer eps=%s delta=%s' % (eps, delta),
+				'policy_class_name': 'NaiveSequentialExplorer',
+				'policy_args': (eps, delta),
 				'policy_kwargs': {'num_arms': num_arms,
 								  'max_time': max_time}
 			}
 			params.update(reward_gen_params)
 			yield params
 
+def iter_SuccessiveEliminationSequentialExplorer_sim_params(reward_gen_params):
+	num_arms = reward_gen_params['num_arms']
+	for delta in exploration_first_deltas:
+		params = {
+			'name': 'SuccessiveEliminationSequentialExplorer delta=%s' % (delta,),
+			'policy_class_name': 'SuccessiveEliminationSequentialExplorer',
+			'policy_args': (delta, reward_gen_params['mus']),
+			'policy_kwargs': {'num_arms': num_arms,
+							  'max_time': max_time}
+		}
+		params.update(reward_gen_params)
+		yield params
+
 def iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params(reward_gen_params):
-	for num_arms in all_num_arms:
-		for eps in succ_elim_eps:
-			for delta in exploration_first_deltas:
-				params = {
-					'name': 'SuccessiveEliminationUnknownBiasesUniformExplorer eps=%s delta=%s' % (eps, delta),
-					'policy_class_name': 'SuccessiveEliminationUnknownBiasesUniformExplorer',
-					'policy_args': (delta, eps),
-					'policy_kwargs': {'num_arms': num_arms,
-									  'max_time': max_time}
-				}
-				params.update(reward_gen_params)
-				yield params
+	num_arms = reward_gen_params['num_arms']
+	for eps in succ_elim_eps:
+		for delta in exploration_first_deltas:
+			params = {
+				'name': 'SuccessiveEliminationUnknownBiasesUniformExplorer eps=%s delta=%s' % (eps, delta),
+				'policy_class_name': 'SuccessiveEliminationUnknownBiasesUniformExplorer',
+				'policy_args': (delta,),
+				'policy_kwargs': {'epsilon': eps,
+								  'num_arms': num_arms,
+								  'max_time': max_time}
+			}
+			params.update(reward_gen_params)
+			yield params
+
+def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
+	num_arms = reward_gen_params['num_arms']
+	for eps in exploration_first_eps:
+		for delta in exploration_first_deltas:
+			params = {
+				'name': 'MedianEliminationSequentialExplorer eps=%s delta=%s' % (eps, delta),
+				'policy_class_name': 'MedianEliminationSequentialExplorer',
+				'policy_args': (eps, delta),
+				'policy_kwargs': {'num_arms': num_arms,
+								  'max_time': max_time}
+			}
+			params.update(reward_gen_params)
+			yield params
 
 policy_param_gens = (
-	iter_eps_greedy_sim_params,
-	iter_eps_t_greedy_sim_params,
-	iter_UCB_sim_params,
-	iter_UCBBernoulli_sim_params,
-	iter_UCBNormal_sim_params,
-	iter_UCB2SequentialEpochs_sim_params,
-	iter_UCB2NonSequentialEpochs_sim_params,
-	iter_Poker_sim_params,
-	iter_SoftMix_sim_params,
-	iter_EXP3_sim_params,
-	iter_NaiveSequentialExplorer_sim_params,
-	iter_SuccessiveEliminationSequentialExplorer_sim_params,
-	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params
+#	iter_eps_greedy_sim_params,
+#	iter_eps_t_greedy_sim_params,
+#	iter_UCB_sim_params,
+#	iter_UCBBernoulli_sim_params,
+#	iter_UCBNormal_sim_params,
+#	iter_UCB2SequentialEpochs_sim_params,
+#	iter_UCB2NonSequentialEpochs_sim_params,
+#	iter_Poker_sim_params,
+#	iter_SoftMix_sim_params,
+#	iter_EXP3_sim_params,
+#	iter_NaiveSequentialExplorer_sim_params,
+#	iter_SuccessiveEliminationSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
+#	iter_MedianEliminationSequentialExplorer_sim_params
 )
 
 def iter_all_experiment_params():
