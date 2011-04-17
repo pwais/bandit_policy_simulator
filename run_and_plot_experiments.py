@@ -20,7 +20,7 @@ class ExpGreedySimu(Simulation):
 		super(ExpGreedySimu, self).__init__(*args, **kwargs)
 		self.num_arms = num_arms
 		self.eps = eps
-		self.name = "Epsilon Greedy K=%s epsilon=%s" % (num_arms, eps)
+		self.name = "Epsilon Greedy eps=%s" % (num_arms, eps)
 		
 	def init(self):
 		p = policy.EpsGreedy(num_arms=self.num_arms, eps=self.eps)

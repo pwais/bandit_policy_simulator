@@ -3,6 +3,7 @@ import random
 
 import numpy
 import numpy.random
+import scipy.stats
 
 numpy.random.seed()
 
@@ -228,7 +229,7 @@ class UCBNormal(SampleStatsPolicy):
 class UCB2SequentialEpochs(SampleStatsPolicy):
 
 	def __init__(self, alpha=0.001, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(UCB2SequentialEpochs, self).__init__(*args, **kwargs)
 		self.alpha = alpha
 		self.r_i = [0] * num_arms
 		self.in_epoch = False
@@ -239,20 +240,20 @@ class UCB2SequentialEpochs(SampleStatsPolicy):
 	def tao(self, r):
 		return math.ceil((1 + self.alpha)**r)
 
+	def conf_bound(self, t, r):
+		tao_r = self.tao(r)
+		return math.sqrt(((1 + self.alpha) * 
+						  math.log(math.e * (t / tao_r))) / 
+						 (2.0 * tao_r))
+
 	def _choose_best_arm(self):
-		def conf_bound(t, r):
-			tao_r = self.tao(r)
-			return math.sqrt(((1 + self.alpha) * 
-							  math.log(math.e * (t / tao_r))) / 
-							 (2.0 * tao_r))
-		
 		sample_means = self.reward_sample_stats.get_sample_means()
 		max_est_reward = None
 		best_arm = None
 		iter_data = enumerate(zip(sample_means, 
 								  self.r_i))
 		for i, (sample_mean, r) in iter_data:
-			est_reward = sample_mean + conf_bound(self.time + 1, r)
+			est_reward = sample_mean + self.conf_bound(self.time + 1, r)
 			if est_reward > max_est_reward:
 				max_est_reward = est_reward
 				best_arm = i
@@ -281,7 +282,7 @@ class UCB2NonSequentialEpochs(SampleStatsPolicy):
 	# TODO refactor out common UCB2 functionality
 
 	def __init__(self, alpha=0.001, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(UCB2NonSequentialEpochs, self).__init__(*args, **kwargs)
 		self.alpha = alpha
 		self.r_i = [0] * num_arms
 		self.epoch_counters = [-1] * num_arms
@@ -290,20 +291,20 @@ class UCB2NonSequentialEpochs(SampleStatsPolicy):
 	def tao(self, r):
 		return math.ceil((1 + self.alpha)**r)
 
+	def conf_bound(self, t, r):
+		tao_r = self.tao(r)
+		return math.sqrt(((1 + self.alpha) * 
+						  math.log(math.e * (t / tao_r))) / 
+						 (2.0 * tao_r))
+
 	def _choose_best_arm(self):
-		def conf_bound(t, r):
-			tao_r = self.tao(r)
-			return math.sqrt(((1 + self.alpha) * 
-							  math.log(math.e * (t / tao_r))) / 
-							 (2.0 * tao_r))
-		
 		sample_means = self.reward_sample_stats.get_sample_means()
 		max_est_reward = None
 		best_arm = None
 		iter_data = enumerate(zip(sample_means, 
 								  self.r_i))
 		for i, (sample_mean, r) in iter_data:
-			est_reward = sample_mean + conf_bound(self.time + 1, r)
+			est_reward = sample_mean + self.conf_bound(self.time + 1, r)
 			if est_reward > max_est_reward:
 				max_est_reward = est_reward
 				best_arm = i
@@ -334,7 +335,7 @@ class UCB2NonSequentialEpochs(SampleStatsPolicy):
 class Poker(SampleStatsPolicy):
 	
 	def __init__(self, horizon=None, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(Poker, self).__init__(*args, **kwargs)
 		self.horizon = horizon
 		self.all_rewards = []
 	
@@ -378,14 +379,14 @@ class Poker(SampleStatsPolicy):
 class SoftMix(SampleStatsPolicy):
 	
 	def __init__(self, d, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(SoftMix, self).__init__(*args, **kwargs)
 		self.d = d
 		self.reward_sums = [0] * num_arms
 		self.last_p = None
 	
 	def update(self, arm, reward):
 		super(SoftMix, self).update(arm, reward)
-		self.self.reward_sums[arm] += float(reward) / self.last_p
+		self.reward_sums[arm] += float(reward) / self.last_p
 	
 	def choose_arm(self):
 		if self.time > 2:
@@ -409,10 +410,35 @@ class SoftMix(SampleStatsPolicy):
 		
 		return arm
 
+class EXP3(SampleStatsPolicy):
+	
+	def __init__(self, gamma=None, num_arms=10, max_time=10**5, *args, **kwargs):
+		super(EXP3, self).__init__(*args, **kwargs)
+		self.weights = [1] * num_arms
+		self.probs = [0] * num_arms
+		if gamma is None:
+			gamma = min(1, math.sqrt((num_arms * math.log(num_arms)) / ((math.e - 1) * max_time)))
+		else:
+			self.gamma = gamma
+	
+	def update(self, arm, reward):
+		super(EXP3, self).update(arm, reward)
+		
+		x_hat = float(reward) / self.probs[arm]
+		self.weights[arm] *= math.exp((self.gamma * x_hat) / self.num_arms)
+	
+	def choose_arm(self):
+		sum_weights = sum(self.weights)
+		self.probs = [((1 - self.gamma) * (weight / sum_weights) + self.gamma / self.num_arms)
+					  for weight in self.weights]
+		
+		arm = weighted_choice(self.probs)
+		return arm
+
 class NaiveSequentialExplorer(SampleStatsPolicy):
 	
 	def __init__(self, epsilon, delta, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(NaiveSequentialExplorer, self).__init__(*args, **kwargs)
 		self.epsilon = epsilon
 		self.delta = delta
 		self.arm_count = [0] * num_arms
@@ -437,7 +463,7 @@ class NaiveSequentialExplorer(SampleStatsPolicy):
 class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):
 	
 	def __init__(self, delta, biases, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+		super(SuccessiveEliminationSequentialExplorer, self).__init__(*args, **kwargs)
 		self.delta = delta
 		self.active_arms = [True] * num_arms
 		
@@ -476,21 +502,32 @@ class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):
 			return self.best_arm
 
 class SuccessiveEliminationUnknownBiasesUniformExplorer(SampleStatsPolicy):
+	"""Note that setting epsilon makes this an (eps,delta)-PAC algo"""
 	
-	def __init__(self, delta, biases, c=5, num_arms=10, *args, **kwargs):
-		super(EpsGreedy, self).__init__(*args, **kwargs)
+	def __init__(self, delta, epsilon=None, c=5, num_arms=10, *args, **kwargs):
+		super(SuccessiveEliminationUnknownBiasesUniformExplorer, self).__init__(*args, **kwargs)
 		self.delta = delta
+		self.epsilon = epsilon
 		self.c = c
 		self.active_arms = [True] * num_arms
-		
 		self.best_arm = None
-		
 		self.arm_chooser = self.make_arm_chooser()
 	
+	def stop_sampling(self):
+		num_active_arms = sum(1.0 for active in self.active_arms if active)
+		if self.epsilon:
+			min_num_samples = ((1.0 / (self.epsilon ** 2)) * 
+							   math.log(num_active_arms / self.delta))
+			arms_need_more_sampling = [i for i, count in enumerate(self.sample_stats.counts)
+									     if count < min_num_samples]
+			return len(arms_need_more_sampling) == 0
+		else:
+			return num_active_arms == 1
+	
 	def make_arm_chooser(self):
-		while sum(1 for active in self.active_arms if active) > 1:
+		while not self.stop_sampling():
 			sample_means = self.sample_stats.get_sample_means()
-			best_arm, best_mean = imax(sample_means)
+			_, best_mean = imax(sample_means)
 			alpha_t = math.sqrt(
 						math.log((self.c * self.num_arms * (self.time ** 2)) / self.delta) /
 						self.time)
@@ -519,7 +556,57 @@ class SuccessiveEliminationUnknownBiasesUniformExplorer(SampleStatsPolicy):
 			
 			return self.best_arm
 
-
+class MedianEliminationSequentialExplorer(SampleStatsPolicy):
+	
+	def __init__(self, epsilon, delta, c=5, num_arms=10, *args, **kwargs):
+		super(MedianEliminationSequentialExplorer, self).__init__(*args, **kwargs)
+		self.delta = delta
+		self.c = c
+		self.active_arms = [True] * num_arms
+		self.best_arm = None
+		self.arm_chooser = self.make_arm_chooser()
+	
+	def update(self, arm, reward):
+		super(MedianEliminationSequentialExplorer, self).update(arm, reward)
+		self.epoch_rewards[arm].append(reward)
+	
+	def make_arm_chooser(self):
+		
+		eps_current = self.epsilon / 4.0
+		delta_current = self.delta / 2.0
+		
+		while sum(1 for active in self.active_arms if active) > 1:
+			
+			self.epoch_rewards = [[]] * self.num_arms
+			
+			times_to_sample = (1.0 / ((eps_current / 2.0) ** 2)) * math.log(3.0 / delta_current)
+			for i in range(self.num_arms):
+				if self.active_arms[i]:
+					for _ in range(times_to_sample):
+						yield i
+			
+			epoch_means = [sum(rwds) / len(rwds) for rwds in self.epoch_rewards]
+			median_rwd = scipy.stats.scoreatpercentile(epoch_means, 50)
+			
+			for i in range(self.num_arms):
+				if epoch_means[i] < median_rwd:
+					self.active_arms[i] = False
+			
+			eps_current *= (3.0 / 4)
+			delta_current *= 0.5
+	
+	def choose_arm(self):
+		try:
+			arm = self.arm_chooser.next()
+			return arm
+		except StopIteration:
+			if not self.best_arm:
+				for i, active in enumerate(self.active_arms):
+					if active:
+						self.best_arm = i
+						break
+			
+			return self.best_arm
 
 ### TODO Poker, Exp3, softmax, intervalest... and all the explore policy ones
 
