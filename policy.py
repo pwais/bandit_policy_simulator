@@ -459,10 +459,12 @@ class NaiveSequentialExplorer(SampleStatsPolicy):
 			return self.current_arm
 		else:
 			self.current_arm += 1
+			return self.current_arm
 		
 		if self.current_arm > self.num_arms:
-			if not self.best_arm:
+			if self.best_arm is None:
 				self.best_arm, _ = imax(self.sample_stats.get_sample_means())
+				print self.best_arm
 			return self.best_arm
 		
 class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):

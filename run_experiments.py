@@ -283,9 +283,9 @@ policy_param_gens = (
 #	iter_SoftMix_sim_params,
 #	iter_EXP3_sim_params,
 	iter_NaiveSequentialExplorer_sim_params,
-	iter_SuccessiveEliminationSequentialExplorer_sim_params,
-	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
-	iter_MedianEliminationSequentialExplorer_sim_params
+#	iter_SuccessiveEliminationSequentialExplorer_sim_params,
+#	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
+#	iter_MedianEliminationSequentialExplorer_sim_params
 )
 
 def iter_all_experiment_params():
