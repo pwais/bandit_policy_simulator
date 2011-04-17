@@ -9,7 +9,7 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 2000
+max_time = 10000
 
 all_num_arms = (10, 25, 50, 100, 1000)
 distro_eps = (0.1, 0.01, 0.001, 0.0001)
@@ -53,8 +53,8 @@ def iter_distro_params():
 			}
 	
 	for num_arms in all_num_arms:
-		mus = numpy.random.uniform(low=0.0, high=1.0, size=num_arms)
-		sigmas = numpy.random.uniform(low=0.0, high=1.0, size=num_arms)
+		mus = list(numpy.random.uniform(low=0.0, high=1.0, size=num_arms))
+		sigmas = list(numpy.random.uniform(low=0.0, high=1.0, size=num_arms))
 		sorted_mus = sorted(mus, reverse=True)
 		d = sorted_mus[0] - sorted_mus[1]
 		yield {
@@ -68,7 +68,7 @@ def iter_distro_params():
 			}
 	
 	for num_arms in all_num_arms:
-		ps = numpy.random.uniform(low=0.0, high=1.0, size=num_arms)
+		ps = list(numpy.random.uniform(low=0.0, high=1.0, size=num_arms))
 		sorted_ps = sorted(ps, reverse=True)
 		d = sorted_ps[0] - sorted_ps[1]
 		yield {
@@ -282,20 +282,20 @@ def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
 			yield params
 
 policy_param_gens = (
-#	iter_eps_greedy_sim_params,
-#	iter_eps_t_greedy_sim_params,
-#	iter_UCB_sim_params,
-#	iter_UCBBernoulli_sim_params,
-#	iter_UCBNormal_sim_params,
-#	iter_UCB2SequentialEpochs_sim_params,
-#	iter_UCB2NonSequentialEpochs_sim_params,
-#	iter_Poker_sim_params,
-#	iter_SoftMix_sim_params,
-#	iter_EXP3_sim_params,
-#	iter_NaiveSequentialExplorer_sim_params,
-#	iter_SuccessiveEliminationSequentialExplorer_sim_params,
+	iter_eps_greedy_sim_params,
+	iter_eps_t_greedy_sim_params,
+	iter_UCB_sim_params,
+	iter_UCBBernoulli_sim_params,
+	iter_UCBNormal_sim_params,
+	iter_UCB2SequentialEpochs_sim_params,
+	iter_UCB2NonSequentialEpochs_sim_params,
+	iter_Poker_sim_params,
+	iter_SoftMix_sim_params,
+	iter_EXP3_sim_params,
+	iter_NaiveSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationSequentialExplorer_sim_params,
 	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
-#	iter_MedianEliminationSequentialExplorer_sim_params
+	iter_MedianEliminationSequentialExplorer_sim_params
 )
 
 def iter_all_experiment_params():

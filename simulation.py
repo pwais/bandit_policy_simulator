@@ -99,8 +99,8 @@ class Simulation(object):
 	def save(self):
 		data = [self.simu_params, self.run_data]
 		fname = "records/%s_%s.json" % (self.simu_params['name'], self.simu_params['distro_name'])
-		fname.replace(' ', '_')
-#		simplejson.dump(data, open(fname, 'w'))
+		fname = fname.replace(' ', '_')
+		simplejson.dump(data, open(fname, 'w'))
 			
 
 
