@@ -491,7 +491,7 @@ class SuccessiveEliminationSequentialExplorer(SampleStatsPolicy):
 			times_to_sample = self.t_is[self.num_arms - 1 - i] - self.t_is[self.num_arms - i]
 			for i in range(self.num_arms):
 				if self.active_arms[i]:
-					for _ in range(int(times_to_sample)):
+					for _ in xrange(int(times_to_sample)):
 						yield i
 			
 			worst_arm, _ = imin(self.sample_stats.get_sample_means())
@@ -536,13 +536,14 @@ class SuccessiveEliminationUnknownBiasesUniformExplorer(SampleStatsPolicy):
 	def make_arm_chooser(self):
 		while not self.stop_sampling():
 			sample_means = self.sample_stats.get_sample_means()
-			_, best_mean = imax(sample_means)
+			_, best_mean = imax([m for i, m in enumerate(sample_means) if self.active_arms[i]])
 			alpha_t = math.sqrt(
 						math.log((self.c * self.num_arms * (self.time ** 2)) / self.delta) /
 						self.time)
 			for i in range(self.num_arms):
-				if best_mean - sample_means[i] >= 2 * alpha_t:
-					self.active_arms[i] = False
+				if self.active_arms[i]:
+					if best_mean - sample_means[i] >= 2.0 * alpha_t:
+						self.active_arms[i] = False
 			
 			# Choose an arm uniformly; this is not necessarily part of Succesive Elimination
 			# with Unknown Biases

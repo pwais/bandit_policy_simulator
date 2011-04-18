@@ -13,7 +13,7 @@ NETWORK_LATENCIES_UNNORMALIZED = [
 min_latency = min([min(row) for row in NETWORK_LATENCIES_UNNORMALIZED])
 max_latency = max([max(row) for row in NETWORK_LATENCIES_UNNORMALIZED])
 
-NETWORK_LATENCIES = [[(float(v) - min_latency) / max_latency for v in row]
+NETWORK_LATENCIES = [[(1.0 - ((float(v) - min_latency) / max_latency)) for v in row]
 					 for row in NETWORK_LATENCIES_UNNORMALIZED]
 
 NETWORK_LATENCY_MUS = []

@@ -51,8 +51,8 @@ class Simulation(object):
 		
 		# Pre-allocate to significantly increase performance
 		rewards = [[]] * self.max_time
-		policy_rewards = [0] * self.max_time
-		reward_sums = [0] * policy.num_arms
+		policy_rewards = [0.0] * self.max_time
+		reward_sums = [0.0] * policy.num_arms
 		arm_choices = []
 		
 		for t, rewards_t in enumerate(iter_rewards):
@@ -94,13 +94,13 @@ class Simulation(object):
 		
 #		opt_arm = []
 		opt_arm_rwd = []
-		policy_reward = []
-		for t in range(len(policy_rewards_s[0])):
+		mean_policy_reward = []
+		for t in range(len(opt_arm_rwd_s[0])):
 #			opt_arm.append(mean(col[t] for col in opt_arm_s))
 			opt_arm_rwd.append(mean(col[t] for col in opt_arm_rwd_s))
-			policy_reward.append(mean(col[t] for col in policy_rewards_s))
-		
-		self.run_data = (opt_arm_rwd, policy_rewards)
+			mean_policy_reward.append(mean(col[t] for col in policy_rewards_s))
+
+		self.run_data = (opt_arm_rwd, mean_policy_reward)
 
 	def save(self):
 		data = [self.simu_params, self.run_data]

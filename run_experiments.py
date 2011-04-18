@@ -1,7 +1,6 @@
 import sys
 from multiprocessing import Pool
 from multiprocessing import Queue
-#from threading import Thread
 
 import numpy.random
 
@@ -10,6 +9,22 @@ from simulation import Simulation
 import rewards
 
 max_time = 10000
+
+#all_num_arms = (100,)
+#distro_eps = (0.01,)
+#
+#eps_greedy_epsilons = (0.1, 0.001)
+#
+#eps_t_greedy_cs = (0.1, 1.0, 5.0)
+#
+#ucb2_alphas = (0.01,)
+#
+#exp3_gammas = (0.01, None)
+#
+#exploration_first_eps = (0.01,)
+#exploration_first_deltas = (0.01,)
+#succ_elim_eps = exploration_first_eps + (None,)
+
 
 all_num_arms = (10, 100)
 distro_eps = (0.1, 0.01, 0.001)
@@ -25,7 +40,6 @@ exp3_gammas = (0.1, 0.01, None)
 exploration_first_eps = (0.1, 0.01, 0.001)
 exploration_first_deltas = (0.1, 0.01, 0.001)
 succ_elim_eps = exploration_first_eps + (None,)
-
 
 
 def iter_distro_params():
@@ -294,10 +308,10 @@ fam_4 = (
 	iter_NaiveSequentialExplorer_sim_params,
 	iter_SuccessiveEliminationSequentialExplorer_sim_params,
 	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
-	iter_MedianEliminationSequentialExplorer_sim_params
+	iter_MedianEliminationSequentialExplorer_sim_params,
 )
 
-policy_param_gens = fam_1 + fam_2 + fam_4 + fam_4
+policy_param_gens = fam_1 + fam_2 + fam_3 + fam_4
 
 def iter_all_experiment_params():
 	for reward_gen_params in iter_distro_params():
@@ -332,34 +346,6 @@ def get_experiments(simu_family):
 	elif simu_family == 4:
 		return iter_family(fam_4)
 
-#def run_simu(sim):
-#	sim.run(verbose=True)
-
-##
-## From http://bytes.com/topic/python/answers/552476-why-cant-you-pickle-instancemethods
-## We may need the code below to make multiprocessing work correctly
-##
-
-#def _pickle_method(method):
-#	func_name = method.im_func.__name__
-#	obj = method.im_self
-#	cls = method.im_class
-#	return _unpickle_method, (func_name, obj, cls)
-#
-#def _unpickle_method(func_name, obj, cls):
-#	for cls in cls.mro():
-#		try:
-#			func = cls.__dict__[func_name]
-#		except KeyError:
-#			pass
-#		else:
-#			break
-#		return func.__get__(obj, cls)
-#
-#import copy_reg
-#import types
-#copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
-
 def segment(seq, n):
 	chunk = []
 	for s in seq:
@@ -376,21 +362,11 @@ if __name__ == '__main__':
 	
 	iter_experiment_params = get_experiments(simu_family)
 	
-#	all_simus = []
 	if num_procs == 1:
 		for params in iter_experiment_params():
 			simu = run_simu(params)
-#			all_simus.append(simu)
 	else:
 		pool = Pool(processes=num_procs)
 		for chunk in segment(iter_experiment_params(), num_procs):
 			simus = pool.map(run_simu, chunk)
-#			all_simus.extend(simus)
 
-#if __name__ == '__main__':
-#	num_threads = 10
-#	all_simus = []
-#	for chunk in segment(iter_experiments(), num_threads):
-#		workers = [FunctionWorker(run_simu, [sim]) for sim in chunk]
-#		run_workers(workers)
-#		all_simus.extend(chunk)

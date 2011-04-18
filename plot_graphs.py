@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import os
 
+from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
 import numpy
 import simplejson
@@ -28,9 +29,9 @@ GRAPHS = (
 	 'Poker_Uniform_eps=0.01_K=100.json',
 	),
 	
-	('EXP3_Uniform_eps=0.001_K=100.json',
-	 'EXP3_gamma=0.01_Uniform_eps=0.001_K=100.json',
-	 'SoftMix_Uniform_eps=0.001_K=100.json',
+	('EXP3_Uniform_eps=0.01_K=100.json',
+	 'EXP3_gamma=0.01_Uniform_eps=0.01_K=100.json',
+	 'SoftMix_Uniform_eps=0.01_K=100.json',
 	),
 	
 	('Naive_Explorer_eps=0.01_delta=0.01_Uniform_eps=0.01_K=100.json',
@@ -139,11 +140,14 @@ def plot_graph(fnames):
 		except Exception:
 			print "Probably bad file %s" % fname
 	
+	if not datas:
+		return
+	
 	distro_name = datas[0][0]['distro_name']
 	
 	plt.title(distro_name)
-	plt.ylabel("% Optimal Gain")
-	plt.xlabel("Time Elapsed ($t$)")
+	plt.ylabel("Regret")
+	plt.xlabel("Time Elapsed (Time Steps)")
 	
 	plots = []
 	names = []
@@ -151,14 +155,35 @@ def plot_graph(fnames):
 	for simu_params, run_data in datas:
 		opt_arm_rwd, policy_rewards = run_data
 		
-		ys = numpy.cumsum(policy_rewards) / numpy.cumsum(opt_arm_rwd)
+		ys = numpy.cumsum(opt_arm_rwd) - numpy.cumsum(policy_rewards)
 		ts = range(len(policy_rewards))
 
 		p, = plt.plot(ts, ys)
-		names.append(simu_params['name'])
-		plots.append(p)
+		#plt.yticks(numpy.arange(0.0, 1.4, 0.2))
+		#plt.xticks(numpy.arange(0, len(ts), len(ts) / 10.0))
 		
-	plt.legend(plots, names)
+		# Simplify legend titles
+		name = simu_params['name']
+		name = name.replace('alpha', '$\\alpha$')
+		name = name.replace('gamma', '$\\gamma$')
+		name = name.replace('eps', '$\\epsilon$')
+		name = name.replace('Epsilon-t', '$\\epsilon_t$')
+		name = name.replace('Epsilon', '$\\epsilon$')
+		name = name.replace('delta', '$\\delta$')
+		name = name.replace('Naive Explorer', 'NE')
+		name = name.replace('Successive Elimination', 'SE')
+		name = name.replace(' with Unknown Biases', '-UB')
+		name = name.replace('Median Elimination', 'ME')
+		name = name.replace('-Non-Sequential', '-NS')
+		name = name.replace('-Normal', '-N')
+		name = name.replace('-Bernoulli', '-B')
+		
+		names.append(name)
+		plots.append(p)
+	
+	fontP = FontProperties()
+	fontP.set_size('small')
+	plt.legend(plots, names, loc='upper left', prop=fontP, borderpad=0.1, labelspacing=0.2)
 	plt.hold(False)
 	
 def plot_all_graphs():
@@ -166,7 +191,7 @@ def plot_all_graphs():
 	for subplot_idx, fnames in enumerate(GRAPHS):
 		plt.subplot(GRAPHS_ROWS, GRAPHS_COLS, subplot_idx + 1)
 		plot_graph(fnames)
-#		f.subplots_adjust(bottom=-0.2)
+		f.subplots_adjust(hspace=0.5)
 	
 	plt.show()
 
