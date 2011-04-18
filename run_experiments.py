@@ -9,14 +9,14 @@ import policy
 from simulation import Simulation
 import rewards
 
-max_time = 100000
+max_time = 10
 
-all_num_arms = (10, 25, 50, 100, 1000)
-distro_eps = (0.1, 0.01, 0.001, 0.0001)
+all_num_arms = (10, 100)
+distro_eps = (0.1, 0.01, 0.001)
 
-eps_greedy_epsilons = (0.5, 0.1, 0.01, 0.001, 0.0001)
+eps_greedy_epsilons = (0.5, 0.1, 0.01, 0.001)
 
-eps_t_greedy_cs = (0.05, 0.1, 0.15, 0.2, 0.4, 1.0, 2.0, 5.0)
+eps_t_greedy_cs = (0.1, 0.2, 0.4, 1.0, 2.0, 5.0)
 
 ucb2_alphas = (0.001, 0.01)
 
@@ -70,7 +70,7 @@ def iter_distro_params():
 			 'num_arms': num_arms,
 			}
 	
-	for num_arms in (76, 760):
+	for num_arms in (100,):
 		sorted_mus = sorted(rewards.NETWORK_LATENCY_MUS[:num_arms])
 		d = sorted_mus[0] - sorted_mus[1]
 		yield {
@@ -271,22 +271,33 @@ def iter_MedianEliminationSequentialExplorer_sim_params(reward_gen_params):
 			params.update(reward_gen_params)
 			yield params
 
-policy_param_gens = (
-#	iter_eps_greedy_sim_params,
-#	iter_eps_t_greedy_sim_params,
-#	iter_UCB_sim_params,
-#	iter_UCBBernoulli_sim_params,
-#	iter_UCBNormal_sim_params,
-#	iter_UCB2SequentialEpochs_sim_params,
-#	iter_UCB2NonSequentialEpochs_sim_params,
-#	iter_Poker_sim_params,
-#	iter_SoftMix_sim_params,
-#	iter_EXP3_sim_params,
-	iter_NaiveSequentialExplorer_sim_params,
-#	iter_SuccessiveEliminationSequentialExplorer_sim_params,
-#	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
-#	iter_MedianEliminationSequentialExplorer_sim_params
+fam_1 = (
+	iter_eps_greedy_sim_params,
+	iter_eps_t_greedy_sim_params,
 )
+
+fam_2 = (
+	iter_UCB_sim_params,
+	iter_UCBBernoulli_sim_params,
+	iter_UCBNormal_sim_params,
+	iter_UCB2SequentialEpochs_sim_params,
+	iter_UCB2NonSequentialEpochs_sim_params,
+	iter_Poker_sim_params,
+)
+
+fam_3 = (
+	iter_SoftMix_sim_params,
+	iter_EXP3_sim_params,
+)
+
+fam_4 = (
+	iter_NaiveSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationSequentialExplorer_sim_params,
+	iter_SuccessiveEliminationUnknownBiasesUniformExplorer_sim_params,
+	iter_MedianEliminationSequentialExplorer_sim_params
+)
+
+policy_param_gens = fam_1 + fam_2 + fam_4 + fam_4
 
 def iter_all_experiment_params():
 	for reward_gen_params in iter_distro_params():
@@ -294,12 +305,32 @@ def iter_all_experiment_params():
 			for params in policy_generator(reward_gen_params):
 				yield params
 
+def iter_family(fam):
+	def param_gen():
+		for reward_gen_params in iter_distro_params():
+			for policy_generator in fam:
+				for params in policy_generator(reward_gen_params):
+					yield params
+	return param_gen
+
+
 def run_simu(params):
 	simu = Simulation(params, max_time=max_time)
 	simu.run()
 	simu.save()
 	return simu
 
+def get_experiments(simu_family):
+	if simu_family == 0:
+		return iter_all_experiment_params
+	elif simu_family == 1:
+		return iter_family(fam_1)
+	elif simu_family == 2:
+		return iter_family(fam_2)
+	elif simu_family == 3:
+		return iter_family(fam_3)
+	elif simu_family == 4:
+		return iter_family(fam_4)
 
 #def run_simu(sim):
 #	sim.run(verbose=True)
@@ -341,14 +372,18 @@ def segment(seq, n):
 
 if __name__ == '__main__':
 	num_procs = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+	simu_family = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+	
+	iter_experiment_params = get_experiments(simu_family)
+	
 #	all_simus = []
 	if num_procs == 1:
-		for params in iter_all_experiment_params():
+		for params in iter_experiment_params():
 			simu = run_simu(params)
 #			all_simus.append(simu)
 	else:
 		pool = Pool(processes=num_procs)
-		for chunk in segment(iter_all_experiment_params(), num_procs):
+		for chunk in segment(iter_experiment_params(), num_procs):
 			simus = pool.map(run_simu, chunk)
 #			all_simus.extend(simus)
 
